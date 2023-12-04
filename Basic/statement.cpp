@@ -50,21 +50,42 @@ INPUT::~INPUT()  {
 }
 
 void INPUT::execute(EvalState &state, Program &program) {
-  int number;
-  std::string date_input;
-  std::cout<< "?"<<'\n';
-  bool flag = false;
-  while(!flag){
-	flag=true;
-	getline(std::cin,date_input);
-	for(int i=0;i<date_input.size();++i){
-	  if(!isdigit(date_input[i])||date_input[i]=='-'){
-		flag=false;
+  bool flag = true;
+  while(flag){
+	std::string date_input;
+	std::cout<<' '<< "?"<<' ';
+	/*bool flag = false;
+	while(!flag){
+	  flag=true;
+	  getline(std::cin,date_input);
+	  for(int i=0;i<date_input.size();++i){
+		if(!isdigit(date_input[i])||date_input[i]=='-'){
+		  flag=false;
+		}
 	  }
+	}*/
+	getline(std::cin,date_input);
+	if(date_input.empty()){
+	  break;
+	}
+	TokenScanner scanner_1;
+	scanner_1.ignoreWhitespace();
+	scanner_1.scanNumbers();
+	scanner_1.setInput(date_input);
+	Expression * value = parseExp(scanner_1);
+	try{
+	  if(((IdentifierExp *)variable)->getName()=="LET"){
+		error("SYNTAX ERROR");
+	  }
+	  state.setValue(((IdentifierExp *)variable)->getName(), value->eval(state));
+	  delete value;
+	  flag= false;
+	}catch (ErrorException &ex){
+	  std::cout << ex.getMessage() << std::endl;
+	  delete value;
 	}
   }
-  number=std::stoi(date_input);
-  state.setValue(((IdentifierExp *)variable)->getName(), number);
+
   program.line_number=program.getNextLineNumber(program.line_number);
 }
 
@@ -158,7 +179,7 @@ void GOTO::execute(EvalState &state, Program &program) {
   if (program.exist_1(n)) {
 	program.line_number = n;
   } else {
-	std::cout << "Line Number Error";
+	std::cout << "LINE NUMBER ERROR"<<std::endl;
 	program.line_number = program.getNextLineNumber(program.line_number);
   }
 }

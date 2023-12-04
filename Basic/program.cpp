@@ -38,6 +38,8 @@ void Program::removeSourceLine(int lineNumber) {
     // Replace this stub with your own code
     queue.erase(lineNumber);
 	source.erase(source.find(lineNumber));
+	delete All_statement[lineNumber];
+	All_statement.erase(lineNumber);
 }
 
 std::string Program::getSourceLine(int lineNumber) {

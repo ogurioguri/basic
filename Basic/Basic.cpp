@@ -89,13 +89,16 @@ void processLine(std::string line, Program &program, EvalState &state) {
 		scanner.nextToken();
 		Expression * right = parseExp(scanner);
 		try{
+		  if(((IdentifierExp *)left)->getName()=="LET"){
+			error("SYNTAX ERROR");
+		  }
 		  state.setValue(((IdentifierExp *)left)->getName(), right->eval(state));
 		  delete left;
 		  delete right;
 		}catch (ErrorException &ex){
+		  std::cout << ex.getMessage() << std::endl;
 		  delete left;
 		  delete right;
-		  throw;
 		}
 	  }
 	  if(result=="PRINT"){
@@ -108,24 +111,50 @@ void processLine(std::string line, Program &program, EvalState &state) {
 		  throw;
 		}
 	  }
-	  if(result=="INPUT"){
-		int date;
-		std::string date_input;
-		std::cout<< "?"<<'\n';
-		Expression * name = parseExp(scanner);
-		bool flag = false;
-		while(!flag){
-		  flag=true;
-		  getline(std::cin,date_input);
-		  for(int i=0;i<date_input.size();++i){
-			if(!(isdigit(date_input[i])||date_input[i]=='-')){
-			  flag=false;
+	  if(result=="INPUT") {
+		Expression *name = parseExp(scanner);
+		bool flag = true;
+		while (flag) {
+		  std::string date_input;
+		  std::cout << ' ' << "?" << ' ';
+		  /*bool flag = false;
+		  while(!flag){
+			flag=true;
+			getline(std::cin,date_input);
+			for(int i=0;i<date_input.size();++i){
+			  if(!isdigit(date_input[i])||date_input[i]=='-'){
+				flag=false;
+			  }
 			}
+		  }*/
+		  getline(std::cin, date_input);
+		  if (date_input.empty()) {
+			break;
+		  }
+		  TokenScanner scanner_1;
+		  scanner_1.ignoreWhitespace();
+		  scanner_1.scanNumbers();
+		  scanner_1.setInput(date_input);
+		  try {
+			if (((IdentifierExp *)name)->getName() == "LET") {
+			  error("SYNTAX ERROR");
+			}
+			if(!date_input.empty()&&date_input[0]!='-'&&!isdigit(date_input[0])){
+			  error("INVALID NUMBER");
+			}
+			for(int i=1;i<date_input.size();++i){
+			  if(!isdigit(date_input[i])){
+				error("INVALID NUMBER");
+			  }
+			}
+			Expression *value = readE(scanner_1);
+			state.setValue(((IdentifierExp *)name)->getName(), ((ConstantExp*)value)->eval(state));
+			delete value;
+			flag = false;
+		  } catch (ErrorException &ex) {
+			std::cout << ex.getMessage() << std::endl;
 		  }
 		}
-		date=std::stoi(date_input);
-		date=std::stoi(date_input);
-		state.setValue(((IdentifierExp *)name)->getName(), date);
 		delete name;
 	  }
 	}
@@ -133,6 +162,9 @@ void processLine(std::string line, Program &program, EvalState &state) {
 	  int line_number=std::stoi(result);
 	  std::string conduct;
 	  conduct = scanner.nextToken();
+	  if(conduct.empty()&&program.exist_1(line_number)){
+		program.removeSourceLine(line_number);
+	  }
 	  if(conduct=="REM"){
 		Statement * thing = new REM(line);
 		program.addSourceLine(line_number,line);
