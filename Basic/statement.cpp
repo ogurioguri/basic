@@ -21,8 +21,7 @@ Statement::~Statement() = default;
 REM::REM(std::string input) {
   content = input;
 }
-REM::~REM() {
-}
+REM::~REM() =default;
 
 void REM::execute(EvalState &state, Program &program) {
   program.line_number=program.getNextLineNumber(program.line_number);
@@ -74,6 +73,7 @@ PRINT::PRINT(Expression* want){
 }
 
 PRINT::~PRINT(){
+  delete content;
 }
 
 void PRINT::execute(EvalState &state, Program &program) {
@@ -151,14 +151,14 @@ GOTO::GOTO(int input_n) {
   n=input_n;
 }
 
-GOTO::~GOTO(){}
+GOTO::~GOTO(){
+}
 
 void GOTO::execute(EvalState &state, Program &program) {
-  if(program.exist_1(n)){
-	program.line_number=n;
-  }
-  else{
-	std::cout<<"Line Number Error";
-	program.line_number=program.getNextLineNumber(program.line_number);
+  if (program.exist_1(n)) {
+	program.line_number = n;
+  } else {
+	std::cout << "Line Number Error";
+	program.line_number = program.getNextLineNumber(program.line_number);
   }
 }

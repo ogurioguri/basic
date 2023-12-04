@@ -20,6 +20,9 @@ void Program::clear() {
     // Replace this stub with your own code
     queue.clear();
 	source.clear();
+	for( auto element:All_statement){
+	  delete element.second;
+	}
 	All_statement.clear();
 	line_number=0;
 
@@ -44,6 +47,9 @@ std::string Program::getSourceLine(int lineNumber) {
 
 void Program::setParsedStatement(int lineNumber, Statement *stmt) {
     // Replace this stub with your own code
+	if(exist_1(lineNumber)){
+	  delete All_statement[lineNumber];
+	}
     All_statement[lineNumber]=stmt;
 }
 

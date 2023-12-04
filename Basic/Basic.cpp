@@ -81,20 +81,32 @@ void processLine(std::string line, Program &program, EvalState &state) {
 		return;
 	  }
 	  if(result=="QUIT"){
+		program.clear();
 		exit(0);
 	  }
 	  if(result=="LET") {
 		Expression * left= readT(scanner);
 		scanner.nextToken();
 		Expression * right = parseExp(scanner);
-		state.setValue(((IdentifierExp *)left)->getName(), right->eval(state));
-		delete left;
-		delete right;
+		try{
+		  state.setValue(((IdentifierExp *)left)->getName(), right->eval(state));
+		  delete left;
+		  delete right;
+		}catch (ErrorException &ex){
+		  delete left;
+		  delete right;
+		  throw;
+		}
 	  }
 	  if(result=="PRINT"){
 		Expression * name = parseExp(scanner);
-		std::cout<<name->eval(state)<<'\n';
-		delete name;
+		try {
+		  std::cout << name->eval(state) << '\n';
+		  delete name;
+		}catch(ErrorException &ex){
+		  delete name;
+		  throw;
+		}
 	  }
 	  if(result=="INPUT"){
 		int date;
@@ -157,13 +169,14 @@ void processLine(std::string line, Program &program, EvalState &state) {
 		Statement * thing = new GOTO(number->eval(state));
 		program.addSourceLine(line_number,line);
 		program.setParsedStatement(line_number,thing);
+		delete number;
 	  }
 	  if(conduct=="IF"){
 		Expression * left = readE(scanner,1);
 		char opt = scanner.nextToken()[0];
 		Expression * right = readE(scanner,1);
 		scanner.nextToken();
-		int n = parseExp(scanner)->eval(state);
+		int n = std::stoi(scanner.nextToken());
 		Statement * thing = new IF(left , opt , right , n);
 		program.addSourceLine(line_number,line);
 		program.setParsedStatement(line_number,thing);
